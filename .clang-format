@@ -1,0 +1,23 @@
+---
+Language: Cpp
+IndentWidth: 4
+TabWidth: 4
+AccessModifierOffset: -4
+UseTab: Always
+NamespaceIndentation: All
+BraceWrapping:
+  AfterClass: true
+  AfterControlStatement: true
+  AfterEnum: true
+  AfterFunction: true
+  AfterNamespace: true
+  AfterObjCDeclaration: true
+  AfterStruct: true
+  AfterUnion: true
+  BeforeCatch: true
+  BeforeElse: true
+BreakBeforeBraces: Custom
+AllowShortFunctionsOnASingleLine: None
+ColumnLimit: 0
+IndentCaseBlocks: true
+IndentCaseLabels: true

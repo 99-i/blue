@@ -1,0 +1,10 @@
+Diagnostics:
+  Suppress:
+    [
+      string-plus-int,
+      deprecated-declarations,
+      unused-includes,
+      type_unsupported,
+      builtin_definition,
+      unused-parameter,
+    ]
