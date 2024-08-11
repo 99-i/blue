@@ -4,7 +4,7 @@ include config.mk
 .PHONY: gen_cc
 .PHONY: test
 
-all: bin all_libraries compile bin/$(PROJECT).exe tests
+all: bin all_libraries compile bin/$(PROJECT).exe
 
 tests: compile bin/lib$(PROJECT).a
 	@tput setaf 2
@@ -25,7 +25,7 @@ OBJS = $(filter-out bin/main.o, $(wildcard bin/*.o))
 MAIN_OBJ = bin/main.o
 
 bin/$(PROJECT).exe: $(MAIN_OBJ) bin/lib$(PROJECT).a bin/recompile
-	gcc $(LINKFLAGS) -o $@ $(MAIN_OBJ) -Lbin $(addprefix -L, $(LIBDIRS)) $(addprefix -l, $(LIBS)) -l$(PROJECT)
+	gcc $(LINKFLAGS) -o $@ $(MAIN_OBJ) -Lbin $(addprefix -L, $(LIBDIRS)) $(addprefix -l, $(LIBS)) -l$(PROJECT) -pthread
 
 bin/lib$(PROJECT).a: $(OBJS)
 	ar rcs $@ $(OBJS)
@@ -51,7 +51,7 @@ full_clean:
 	rm -rf testbin
 
 gen_cc: clean
-	ts-node util/compile_commands.ts
+	ts-node util/compile_commands/compile_commands.ts
 
 dbg: bin/$(PROJECT).exe
 	gdb $<

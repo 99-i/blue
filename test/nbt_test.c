@@ -1,7 +1,7 @@
 #include "nbt.h"
-#include "packet/packet.h"
 #include "util/bytearray.h"
 #include <stdio.h>
+#include <stdlib.h>
 
 int main(void)
 {

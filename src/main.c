@@ -1,7 +1,6 @@
 #include "cJSON.h"
-#include "memory.h"
+#include "mem.h"
 #include "net/server.h"
-#include <memory.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -11,8 +10,10 @@ int main(void)
 {
 	setup_cjson_hooks();
 
+	server_settings settings;
+	settings.version = PROTOCOL_47;
 	server server;
-	server_init(&server);
+	server_init(&server, &settings);
 	server_run(&server);
 	server_join(&server);
 

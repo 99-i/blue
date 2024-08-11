@@ -1,20 +1,25 @@
 #pragma once
 #include "game/client_event.h"
-#include "net/protocol.h"
+#include "game/game_event.h"
+#include "packet/liaison.h"
+#include "packet/protocol.h"
+#include "packet/slp.h"
 #include "types.h"
 #include "util/bytearray.h"
+#include <bits/stdint-uintn.h>
 #include <stdbool.h>
 
 typedef struct
 {
-} protocol_47_state;
+} protocol_47_state; /* todo: store encryption shit here. */
 
 protocol_47_state *protocol_47_create_state(void);
-read_result protocol_47_pop_client_event(void *state, client_state c_state, bytearray *read_buffer, client_event *event);
 
-typedef enum {
-	PROTOCOL_47_SB_REQUEST,
-	PROTOCOL_47_SB_PING,
+read_result protocol_47_pop_client_event(liaison *l, client_event *event);
+void protocol_47_send_game_event(liaison *l, game_event *event);
+
+typedef enum
+{
 	PROTOCOL_47_SB_LOGIN_START,
 	PROTOCOL_47_SB_ENCRYPTION_RESPONSE,
 	PROTOCOL_47_SB_KEEP_ALIVE,
@@ -50,14 +55,6 @@ typedef struct
 	protocol_47_sb_packet_type ptype;
 	union
 	{
-		struct
-		{
-		} request;
-		struct
-		{
-			/* May be any number. Notchian clients use a system-dependent time value which is counted in milliseconds. */
-			int64_t payload;
-		} ping;
 		struct
 		{
 			string name;
@@ -224,13 +221,14 @@ typedef struct
 			/* 0: successfully loaded, 1: declined, 2: failed download, 3: accepted */
 			int32_t result;
 		} resource_pack_status;
-	} data;
+	};
 } protocol_47_serverbound_packet;
 
-read_result protocol_47_read_packet(bytearray *data, size_t offset, protocol_47_serverbound_packet *packet, uint32_t *bytes_read);
+typedef read_result (*protocol_47_read_packet_fn)(bytearray *, size_t, protocol_47_serverbound_packet *, uint32_t *);
 
-read_result protocol_47_read_status_0(bytearray *data, size_t offset, protocol_47_serverbound_packet *packet, uint32_t *bytes_read);
-read_result protocol_47_read_status_1(bytearray *data, size_t offset, protocol_47_serverbound_packet *packet, uint32_t *bytes_read);
+/* Start reading at offset. */
+read_result protocol_47_read_packet(bytearray *data, client_state c_state, size_t offset, protocol_47_serverbound_packet *packet, uint32_t *bytes_read);
+
 read_result protocol_47_read_login_0(bytearray *data, size_t offset, protocol_47_serverbound_packet *packet, uint32_t *bytes_read);
 read_result protocol_47_read_login_1(bytearray *data, size_t offset, protocol_47_serverbound_packet *packet, uint32_t *bytes_read); /* EXT */
 read_result protocol_47_read_play_0(bytearray *data, size_t offset, protocol_47_serverbound_packet *packet, uint32_t *bytes_read);
@@ -259,4 +257,3 @@ read_result protocol_47_read_play_22(bytearray *data, size_t offset, protocol_47
 read_result protocol_47_read_play_23(bytearray *data, size_t offset, protocol_47_serverbound_packet *packet, uint32_t *bytes_read); /* EXT */
 read_result protocol_47_read_play_24(bytearray *data, size_t offset, protocol_47_serverbound_packet *packet, uint32_t *bytes_read);
 read_result protocol_47_read_play_25(bytearray *data, size_t offset, protocol_47_serverbound_packet *packet, uint32_t *bytes_read);
-

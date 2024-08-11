@@ -1,26 +1,35 @@
 #pragma once
-#include "game/event.h"
-#include "net/protocol.h"
+#include "game/client_event.h"
+#include "game/game_event.h"
+#include "packet/protocol.h"
+#include "packet/slp.h"
 #include "types.h"
+#include "util/bytearray.h"
+#include "uv.h"
 
-typedef struct s_protocol_liaison
+typedef struct client_s client;
+
+typedef struct s_liaison
 {
 	protocol_version version;
-
+	bytearray read_buffer;
+	client_state c_state;
+	client *c;
 	/* pointer to internal state used by the liaison.
-	 * also stores the data buffer sent from pop_game_event.
 	 * for example, 1.8.9 uses compression while 1.7.10 doesn't. */
-	void *state;
-
-	/* add <data> to the internal data buffer */
-	void (*append_data)(void *state, const uint8_t *data, size_t size);
-
-	/* attempt to pop a packet
-	 * if malformed, return READ_RESULT_MALFORMED
-	 * if not enough data, return READ_RESULT_NOT_ENOUGH_DATA */
-	read_result (*pop_game_event)(void *state, game_event *event);
+	void *liaison_state;
 } liaison;
 
-liaison *liaison_create(void); /* create an undecided liaison which handles reading the handshake. */
+/* create an undecided liaison which handles reading the handshake. */
+liaison *liaison_create(client *c);
 
-void liaison_set_version(protocol_version version);
+void liaison_append_data(liaison *l, const uint8_t *data, size_t size);
+
+read_result liaison_pop_client_event(liaison *l, client_event *event);
+
+void liaison_set_client_state(liaison *l, client_state new_state);
+
+/* update version, liaison_state, and pop_game_event to their new versions. */
+void liaison_set_version(liaison *l, protocol_version version);
+
+void liaison_send_game_event(liaison *l, game_event *event);

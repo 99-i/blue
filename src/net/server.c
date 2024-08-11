@@ -1,7 +1,11 @@
 #include "net/server.h"
-#include "memory.h"
+#include "mem.h"
 #include "net/client.h"
+#include "packet/protocol.h"
+#include "packet/slp.h"
+#include "util/string.h"
 #include "uv.h"
+#include <string.h>
 
 static void connection_cb(uv_stream_t *stream, int status)
 {
@@ -43,9 +47,9 @@ void server_accept_client(server *s)
 	if (s->clients.size == s->clients.capacity)
 	{
 		s->clients.clients =
-			realloc(s->clients.clients,
-					(s->clients.capacity == 0 ? 1 : s->clients.capacity * 2) *
-						sizeof(client *));
+			blue_realloc(s->clients.clients,
+						 (s->clients.capacity == 0 ? 1 : s->clients.capacity * 2) *
+							 sizeof(client *));
 		s->clients.clients[s->clients.size] = c;
 	}
 }
@@ -92,6 +96,35 @@ void server_client_disconnect(server *s, client *c)
 			s->clients.size--;
 		}
 	}
+}
+
+bool server_supports_protocol_version(server *s, int32_t version)
+{
+	if (is_protocol_version_supported(version))
+		return false;
+
+	return s->settings.max_version >= version && version >= s->settings.min_version;
+}
+
+slp_object *server_get_slp(server *s, protocol_undecided_serverbound_packet *handshake_packet)
+{
+	slp_object *slp = blue_malloc(sizeof(*slp));
+
+	if (server_supports_protocol_version(s, handshake_packet->handshake.protocol_version))
+	{
+		slp->description = string_from_cstr("Welcome to our server.");
+		slp->version = handshake_packet->handshake.protocol_version;
+	}
+	else
+	{
+		slp->description = string_from_cstr("Outdated client!");
+		slp->version = s->settings.min_version;
+	}
+
+	slp->players.max = 10000;
+	slp->players.online = 1;
+
+	return slp;
 }
 
 void server_run_thread(void *data)

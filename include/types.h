@@ -29,5 +29,6 @@ typedef enum
 {
 	READ_RESULT_SUCCESS = 0,
 	READ_RESULT_NOT_ENOUGH_DATA,
-	READ_RESULT_MALFORMED
+	READ_RESULT_MALFORMED,
+	READ_RESULT_NO_RESULT /* Read was successful, but the function returning this has nothing to output. */
 } read_result;

@@ -24,5 +24,3 @@ lib/libuv/build:
 	@cd lib/libuv && mkdir build && cd build && cmake .. -G "Unix Makefiles" -DBUILD_TESTING=OFF && make
 
 all_libraries: lib download_libs compile_libs
-	@cp lib/libuv/build/libuv.dll bin
-	@cp lib/libuv/build/libuv.dll test/testbin

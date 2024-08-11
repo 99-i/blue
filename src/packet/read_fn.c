@@ -1,5 +1,6 @@
 #include "packet/read_fn.h"
-#include "memory.h"
+#include "mem.h"
+#include <string.h>
 #define VARINT_SEGMENT_BITS 0x7F
 #define VARINT_CONTINUE_BIT 0x80
 
@@ -44,7 +45,7 @@ read_result read_string(bytearray *data, size_t offset, string *str, uint32_t *b
 	read_result result;
 
 	result = read_varint(data, offset, &length, &length_size);
-	if (!result)
+	if (result)
 		return result;
 
 	offset += length_size;
@@ -193,7 +194,7 @@ read_result read_chat(bytearray *data, size_t offset, chat_obj *chat, uint32_t *
 {
 	read_result result;
 	result = read_string(data, offset, &chat->raw_json, bytes_read);
-	if (!result)
+	if (result)
 		return result;
 
 	chat->json =

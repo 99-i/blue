@@ -1,12 +1,12 @@
 #include "nbt.h"
-#include "memory.h"
-#include "packet/packet.h"
+#include "mem.h"
 #include "packet/read_fn.h"
 #include "util/bytearray.h"
 #include <assert.h>
 #include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 typedef struct
 {
@@ -17,9 +17,6 @@ typedef struct
 
 /* increment the needle and return the byte at the incremented needle */
 static uint8_t next(read_state *state);
-
-/* return the byte at the current needle */
-static uint8_t current(read_state *state);
 
 /* return the byte at the next needle without incrementing it. */
 static uint8_t peek(read_state *state);
@@ -168,6 +165,7 @@ static read_result read_tag(nbt_tag **tag, read_state *state, bool has_name)
 			}
 			break;
 	}
+	return READ_RESULT_MALFORMED;
 }
 
 #define READ_NAME                                    \
@@ -726,11 +724,6 @@ static uint8_t next(read_state *state)
 	return state->data[state->needle];
 }
 
-static uint8_t current(read_state *state)
-{
-	return state->data[state->needle];
-}
-
 static uint8_t peek(read_state *state)
 {
 	return state->data[state->needle + 1];
@@ -780,7 +773,7 @@ void nbt_dump(nbt_tag *tag, uint32_t indent)
 			printf("TAG INT[name: \"%s\"](%i)\n", name, tag->tag_int);
 			break;
 		case TAG_LONG:
-			printf("TAG LONG[name: \"%s\"](%lld)\n", name, tag->tag_long);
+			printf("TAG LONG[name: \"%s\"](%ld)\n", name, tag->tag_long);
 			break;
 		case TAG_FLOAT:
 			printf("TAG FLOAT[name: \"%s\"](%f)\n", name, tag->tag_float);
@@ -789,7 +782,7 @@ void nbt_dump(nbt_tag *tag, uint32_t indent)
 			printf("TAG DOUBLE[name: \"%s\"](%f)\n", name, tag->tag_double);
 			break;
 		case TAG_BYTE_ARRAY:
-			printf("TAG BYTE ARRAY(SIZE: %llu)[name: \"%s\"] {\n%s\t", tag->tag_byte_array.size, name, tabs);
+			printf("TAG BYTE ARRAY(SIZE: %lu)[name: \"%s\"] {\n%s\t", tag->tag_byte_array.size, name, tabs);
 			for (i = 0; i < tag->tag_byte_array.size; i++)
 			{
 				if (i == tag->tag_byte_array.size - 1)
@@ -804,10 +797,10 @@ void nbt_dump(nbt_tag *tag, uint32_t indent)
 			printf("%s}\n", tabs);
 			break;
 		case TAG_STRING:
-			printf("TAG STRING(SIZE: %llu)[name: \"%s\"] {\"%.*s\"}\n", tag->tag_string.size, name, (int)tag->tag_string.size, (char *)tag->tag_string.data);
+			printf("TAG STRING(SIZE: %lu)[name: \"%s\"] {\"%.*s\"}\n", tag->tag_string.size, name, (int)tag->tag_string.size, (char *)tag->tag_string.data);
 			break;
 		case TAG_LIST:
-			printf("TAG LIST(SIZE: %d)[name: \"%s\"](TYPE: %s) {\n", tag->tag_list.size, name, tag_type_to_string(tag->tag_list.type));
+			printf("TAG LIST(SIZE: %lu)[name: \"%s\"](TYPE: %s) {\n", tag->tag_list.size, name, tag_type_to_string(tag->tag_list.type));
 			for (i = 0; i < (size_t)tag->tag_list.size; i++)
 			{
 				nbt_dump(tag->tag_list.tags[i], indent + 1);
@@ -815,7 +808,7 @@ void nbt_dump(nbt_tag *tag, uint32_t indent)
 			printf("%s}\n", tabs);
 			break;
 		case TAG_COMPOUND:
-			printf("TAG COMPOUND(SIZE: %d)[name: \"%s\"] {\n", tag->tag_compound.size, name);
+			printf("TAG COMPOUND(SIZE: %lu)[name: \"%s\"] {\n", tag->tag_compound.size, name);
 			for (i = 0; i < (size_t)tag->tag_compound.size; i++)
 			{
 				nbt_dump(tag->tag_compound.tags[i], indent + 1);
@@ -823,7 +816,7 @@ void nbt_dump(nbt_tag *tag, uint32_t indent)
 			printf("%s}\n", tabs);
 			break;
 		case TAG_INT_ARRAY:
-			printf("TAG INT ARRAY(SIZE: %d)[name: \"%s\"] {\n", tag->tag_int_array.size, name);
+			printf("TAG INT ARRAY(SIZE: %lu)[name: \"%s\"] {\n", tag->tag_int_array.size, name);
 			for (i = 0; i < (size_t)tag->tag_int_array.size; i++)
 			{
 				if (i == (size_t)tag->tag_int_array.size - 1)
@@ -838,16 +831,16 @@ void nbt_dump(nbt_tag *tag, uint32_t indent)
 			printf("%s}\n", tabs);
 			break;
 		case TAG_LONG_ARRAY:
-			printf("TAG LONG ARRAY(SIZE: %d)[name: \"%s\"] {\n", tag->tag_long_array.size, name);
+			printf("TAG LONG ARRAY(SIZE: %lu)[name: \"%s\"] {\n", tag->tag_long_array.size, name);
 			for (i = 0; i < (size_t)tag->tag_long_array.size; i++)
 			{
 				if (i == (size_t)tag->tag_long_array.size - 1)
 				{
-					printf("LONG(%lld)\n", tag->tag_long_array.longs[i]);
+					printf("LONG(%ld)\n", tag->tag_long_array.longs[i]);
 				}
 				else
 				{
-					printf("LONG(%lld), ", tag->tag_long_array.longs[i]);
+					printf("LONG(%ld), ", tag->tag_long_array.longs[i]);
 				}
 			}
 			printf("%s}\n", tabs);

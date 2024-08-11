@@ -1,3 +1,5 @@
 include $(CONFIG_MK)
 
-include $(SUBDIR_MAKEFILE)
+SUBDIRS = protocol_47 protocol_undecided
+
+include $(SUBDIR_WITH_SUBDIRS_MAKEFILE)

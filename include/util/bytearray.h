@@ -25,3 +25,10 @@ void bytearray_append_data(bytearray *array, const uint8_t *data, size_t size);
 void bytearray_slice_from_beginning(bytearray *array, size_t num_elements);
 
 void bytearray_append_byte(bytearray *array, uint8_t byte);
+
+/* insert a byte such that array->data[position] == byte. */
+/* handles position 0 and position <size> correctly.*/
+void bytearray_insert_byte(bytearray *array, size_t position, uint8_t byte);
+
+/* for debug only. */
+void bytearray_print(bytearray *array);
