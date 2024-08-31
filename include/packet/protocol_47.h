@@ -8,6 +8,7 @@
 #include "util/bytearray.h"
 #include <bits/stdint-uintn.h>
 #include <stdbool.h>
+#include <uuid/uuid.h>
 
 typedef struct
 {
@@ -57,9 +58,13 @@ typedef struct
 	{
 		struct
 		{
-			string name;
+			char *name;
 		} login_start;
-		/*struct {TODO} encryption_response; */
+		struct
+		{
+			bytearray shared_secret;
+			bytearray verify_token;
+		} encryption_response;
 		struct
 		{
 			int32_t keep_alive_id;
@@ -67,7 +72,7 @@ typedef struct
 		struct
 		{
 			/* The client sends the raw input, not Chat */
-			string message;
+			char *message;
 		} chat_message;
 		/*struct {TODO} use_entity; */
 		struct
@@ -193,7 +198,7 @@ typedef struct
 		struct
 		{
 			/* e.g. en_GB */
-			string locale;
+			char *locale;
 			/* Client-side render distance, in chunks */
 			int8_t view_distance;
 			/* 0: enabled, 1: commands only, 2: hidden */
@@ -212,16 +217,17 @@ typedef struct
 		struct
 		{
 			/* UUID of the player to teleport to (can also be an entity UUID) */
-			uuid target_player;
+			uuid_t target_player;
 		} spectate;
 		struct
 		{
 			/* The hash sent in the Resource Pack Send packet. */
-			string hash;
+			char *hash;
 			/* 0: successfully loaded, 1: declined, 2: failed download, 3: accepted */
 			int32_t result;
 		} resource_pack_status;
 	};
+	bool allocated;
 } protocol_47_serverbound_packet;
 
 typedef read_result (*protocol_47_read_packet_fn)(bytearray *, size_t, protocol_47_serverbound_packet *, uint32_t *);

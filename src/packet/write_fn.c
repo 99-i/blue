@@ -2,6 +2,8 @@
 #include "types.h"
 #include "util/bytearray.h"
 #include <assert.h>
+#include <string.h>
+#include <uuid/uuid.h>
 
 #define VARINT_SEGMENT_BITS 0x7F
 #define VARINT_CONTINUE_BIT 0x80
@@ -37,20 +39,20 @@ read_result write_varint(bytearray *data, size_t position, int32_t varint, size_
 	return READ_RESULT_SUCCESS;
 }
 
-read_result write_string(bytearray *data, size_t position, string *str, size_t *bytes_written)
+read_result write_string(bytearray *data, size_t position, const char *str, size_t *bytes_written)
 {
 	size_t i;
 	size_t j;
 	read_result result;
 
-	result = write_varint(data, position, str->size, &i);
+	result = write_varint(data, position, strlen(str), &i);
 
 	if (result)
 		return result;
 
-	for (j = 0; j < str->size; j++)
+	for (j = 0; j < strlen(str); j++)
 	{
-		bytearray_insert_byte(data, position + i++, str->data[j]);
+		bytearray_insert_byte(data, position + i++, str[j]);
 	}
 
 	if (bytes_written)
@@ -187,16 +189,17 @@ read_result write_bytearray(bytearray *data, size_t position, bytearray *to_writ
 	return READ_RESULT_SUCCESS;
 }
 
-read_result write_uuid(bytearray *data, size_t position, uuid id, size_t *bytes_written)
+read_result write_uuid(bytearray *data, size_t position, uuid_t id, size_t *bytes_written)
 {
 	read_result result;
+	size_t i;
 
-	result = write_i64(data, position, id[0], NULL);
-	if (result)
-		return result;
-	result = write_i64(data, position, id[1], NULL);
-	if (result)
-		return result;
+	for (i = 0; i < 16; i++)
+	{
+		result = write_i8(data, position + i, id[i], NULL);
+		if (result)
+			return result;
+	}
 
 	if (bytes_written)
 		*bytes_written = 16;

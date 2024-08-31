@@ -43,7 +43,7 @@ static read_result read_nbt_tag_int_array(nbt_tag **out_tag, read_state *state, 
 static read_result read_nbt_tag_long_array(nbt_tag **out_tag, read_state *state, bool has_name, bool id_prefixed);
 
 /* read a varint, then a string. needle is set to the last byte of the string. */
-static read_result read_nbt_string(read_state *state, string *str);
+static read_result read_nbt_string(read_state *state, char **str);
 
 read_result nbt_read(nbt_tag **tag, bytearray *data, size_t offset)
 {
@@ -74,7 +74,7 @@ void nbt_free(nbt_tag *tag)
 			blue_free(tag->tag_byte_array.data);
 			break;
 		case TAG_STRING:
-			blue_free(tag->tag_string.data);
+			blue_free(tag->tag_string);
 			break;
 		case TAG_LIST:
 			for (i = 0; i < tag->tag_list.size; i++)
@@ -179,7 +179,7 @@ static read_result read_tag(nbt_tag **tag, read_state *state, bool has_name)
 	}                                                \
 	else                                             \
 	{                                                \
-		temp_tag->name = EMPTY_STRING;               \
+		temp_tag->name = NULL;                       \
 	}
 
 static read_result read_nbt_tag_byte(nbt_tag **tag, read_state *state, bool has_name, bool id_prefixed)
@@ -445,10 +445,11 @@ static read_result read_nbt_tag_string(nbt_tag **tag, read_state *state, bool ha
 		return READ_RESULT_MALFORMED;
 	}
 
-	temp_tag->tag_string.size = string_size;
-	temp_tag->tag_string.data = blue_malloc(string_size);
+	temp_tag->tag_string = blue_malloc(string_size + 1);
 
-	memmove(temp_tag->tag_string.data, state->data + state->needle + 1, temp_tag->tag_string.size);
+	memmove(temp_tag->tag_string, state->data + state->needle + 1, string_size);
+
+	temp_tag->tag_string[string_size] = 0;
 
 	state->needle += string_size;
 
@@ -693,7 +694,7 @@ static read_result read_nbt_tag_long_array(nbt_tag **tag, read_state *state, boo
 	return READ_RESULT_SUCCESS;
 }
 
-static read_result read_nbt_string(read_state *state, string *str)
+static read_result read_nbt_string(read_state *state, char **str)
 {
 	uint16_t size = 0;
 	if (state->needle + 2 >= state->data_size)
@@ -709,11 +710,12 @@ static read_result read_nbt_string(read_state *state, string *str)
 		return READ_RESULT_MALFORMED;
 	}
 
-	str->data = blue_malloc(size * sizeof(uint8_t));
-	str->size = size;
+	str = blue_malloc(size * sizeof(uint8_t) + 1);
 
-	memmove(str->data, state->data + state->needle + 1, size);
+	memmove(str, state->data + state->needle + 1, size);
 	state->needle += size;
+
+	str[size] = 0;
 
 	return READ_RESULT_SUCCESS;
 }
@@ -750,9 +752,9 @@ void nbt_dump(nbt_tag *tag, uint32_t indent)
 	size_t i;
 	char *name;
 	char *tabs = str_repeat("\t", indent);
-	if (tag->name.size != 0)
+	if (tag->name != NULL)
 	{
-		name = string_get_cstr(&tag->name);
+		name = strdup(tag->name);
 	}
 	else
 	{
@@ -797,7 +799,7 @@ void nbt_dump(nbt_tag *tag, uint32_t indent)
 			printf("%s}\n", tabs);
 			break;
 		case TAG_STRING:
-			printf("TAG STRING(SIZE: %lu)[name: \"%s\"] {\"%.*s\"}\n", tag->tag_string.size, name, (int)tag->tag_string.size, (char *)tag->tag_string.data);
+			printf("TAG STRING(SIZE: %lu)[name: \"%s\"] {\"%s\"}\n", strlen(tag->tag_string), name, tag->tag_string);
 			break;
 		case TAG_LIST:
 			printf("TAG LIST(SIZE: %lu)[name: \"%s\"](TYPE: %s) {\n", tag->tag_list.size, name, tag_type_to_string(tag->tag_list.type));

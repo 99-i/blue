@@ -10,9 +10,7 @@ type Direction = "Serverbound" | "Clientbound";
 
 const typeTranslations: Record<any, any> = {
 	VarInt: "int32_t",
-	Long: "int64_t",
-	String: "string",
-	Boolean: "bool",
+	Long: "int64_t", String: "string", Boolean: "bool",
 	"Unsigned Short": "uint16_t",
 	Double: "double",
 	Float: "float",
@@ -20,7 +18,7 @@ const typeTranslations: Record<any, any> = {
 	"Unsigned Byte": "uint8_t",
 	Short: "int16_t",
 	Chat: "chat_obj",
-	UUID: "uuid",
+	UUID: "uuid_t",
 	Position: "ipos",
 	"Byte Enum": "int8_t",
 	"VarInt Enum": "int32_t",

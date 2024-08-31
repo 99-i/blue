@@ -1,11 +1,18 @@
-#include "packet/protocol.h"
-#include "mem.h"
-#include "net/server.h"
-#include "packet/protocol_47.h"
 #include "packet/protocol_undecided.h"
+#include "cJSON.h"
+#include "mem.h"
+#include "net/client.h"
+#include "net/server.h"
+#include "packet/packet_builder.h"
+#include "packet/protocol.h"
+#include "packet/protocol_47.h"
 #include "packet/read_fn.h"
+#include "packet/slp.h"
+#include "packet/write_fn.h"
 #include "types.h"
+#include "util/bytearray.h"
 #include <assert.h>
+#include <string.h>
 
 protocol_undecided_state *protocol_undecided_create_state(void)
 {
@@ -15,6 +22,10 @@ protocol_undecided_state *protocol_undecided_create_state(void)
 }
 
 static read_result protocol_undecided_pop_packet(bytearray *read_buffer, client_state c_state, protocol_undecided_state *state, protocol_undecided_serverbound_packet *packet);
+
+static void send_slp(liaison *l);
+static void send_pong(client *c, int64_t payload);
+static void disconnect(client *c);
 
 read_result protocol_undecided_pop_client_event(liaison *l, client_event *event)
 {
@@ -45,7 +56,9 @@ read_result protocol_undecided_pop_client_event(liaison *l, client_event *event)
 					l->c_state = STATE_LOGIN;
 					if (!server_supports_protocol_version(l->c->s, packet.handshake.protocol_version))
 					{
-						/* todo: send disconnect packet. */
+						/* TODO: send disconnect packet. */
+						disconnect(l->c);
+						return READ_RESULT_NO_RESULT;
 					}
 
 					l->version = packet.handshake.protocol_version;
@@ -67,16 +80,81 @@ read_result protocol_undecided_pop_client_event(liaison *l, client_event *event)
 		case PROTOCOL_UNDECIDED_REQUEST:
 			{
 				/* todo: send slp. */
-				bytearray slp_buffer;
+				send_slp(l);
 			}
 			break;
 		case PROTOCOL_UNDECIDED_PING:
 			{
+				send_pong(l->c, packet.ping.payload);
 			}
 			break;
 	}
 
 	return READ_RESULT_NO_RESULT;
+}
+
+static void send_slp(liaison *l)
+{
+	packet_builder builder;
+	slp_object *slp;
+	char *slp_string;
+
+	packet_build(&builder, 0);
+
+	slp = server_get_slp(l->c->s, ((protocol_undecided_state *)l->liaison_state)->version);
+	slp_string = slp_to_json(slp);
+	slp_free(slp);
+
+	packet_append_string(&builder, slp_string);
+
+	blue_free(slp_string);
+
+	packet_package(&builder);
+
+	client_send_raw_bytearray(l->c, &builder.buffer);
+
+	packet_free_builder(&builder);
+}
+
+static void send_pong(client *c, int64_t payload)
+{
+	packet_builder builder;
+
+	packet_build(&builder, 1);
+
+	packet_append_i64(&builder, payload);
+	packet_package(&builder);
+
+	client_send_raw_bytearray(c, &builder.buffer);
+
+	packet_free_builder(&builder);
+
+	c->disconnect = true;
+}
+
+static void disconnect(client *c)
+{
+	packet_builder builder;
+	char *reason_json;
+
+	cJSON *chat;
+	c->disconnect = true;
+
+	chat = cJSON_CreateObject();
+
+	cJSON_AddStringToObject(chat, "text", "Unsupported version!");
+
+	reason_json = cJSON_Print(chat);
+
+	packet_build(&builder, 0);
+	packet_append_string(&builder, reason_json);
+	packet_package(&builder);
+
+	cJSON_Delete(chat);
+
+	blue_free(reason_json);
+
+	packet_free_builder(&builder);
 }
 
 static read_result protocol_undecided_pop_packet(bytearray *read_buffer, client_state c_state, protocol_undecided_state *state, protocol_undecided_serverbound_packet *packet)
@@ -164,12 +242,6 @@ read_result protocol_undecided_read_packet(bytearray *data, client_state c_state
 	return READ_RESULT_SUCCESS;
 }
 
-#define DO_READ(read_fn, variable_name)                                        \
-	result = read_fn(data, offset + bytes_read_buffer, &variable_name, &size); \
-	if (result)                                                                \
-		return result;                                                         \
-	bytes_read_buffer += size;
-
 read_result protocol_undecided_read_handshaking_0(bytearray *data, size_t offset, protocol_undecided_serverbound_packet *packet, uint32_t *bytes_read)
 {
 	uint32_t bytes_read_buffer = 0;
@@ -177,7 +249,7 @@ read_result protocol_undecided_read_handshaking_0(bytearray *data, size_t offset
 	read_result result;
 
 	int32_t protocol_version;
-	string server_address;
+	char *server_address;
 	uint16_t server_port;
 	int32_t next_state;
 
@@ -196,6 +268,9 @@ read_result protocol_undecided_read_handshaking_0(bytearray *data, size_t offset
 	{
 		*bytes_read = bytes_read_buffer;
 	}
+
+	blue_free(server_address);
+
 	return READ_RESULT_SUCCESS;
 }
 

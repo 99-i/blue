@@ -7,9 +7,8 @@
 #include "types.h"
 #include "util/bytearray.h"
 #include "uv.h"
-#include "uv/unix.h"
-#include <cstddef>
 #include <pthread.h>
+#include <stddef.h>
 #include <string.h>
 
 static void client_handle_read(client *c, const uint8_t *data, size_t size);
@@ -25,15 +24,21 @@ static void alloc_cb(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf)
 static void read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf)
 {
 	client *c = stream->data;
-	if (nread == UV_EOF)
+	if (c->disconnect)
 	{
-		printf("Got EOF. Client closing.\n");
-		server_client_disconnect(c->s, c);
+		server_remove_client(c->s, c);
+		client_free(c);
+	}
+	else if (nread == UV_EOF)
+	{
+		server_remove_client(c->s, c);
+		client_free(c);
 	}
 	else if (nread < 0)
 	{
 		/* error */
-		server_client_disconnect(c->s, c);
+		server_remove_client(c->s, c);
+		client_free(c);
 	}
 	else
 	{
@@ -48,6 +53,11 @@ static void read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf)
 
 static void client_handle_read(client *c, const uint8_t *data, size_t size)
 {
+	bytearray arr;
+	arr.data = (uint8_t *)data;
+	arr.size = size;
+	arr.capacity = size;
+
 	liaison_append_data(c->liaison, data, size);
 
 	client_check_events(c);
@@ -58,35 +68,24 @@ static void client_check_events(client *c)
 	client_event event;
 	read_result result;
 
-	while (!(result = liaison_pop_client_event(c->liaison, &event)))
+	while (true)
 	{
-		printf("Got game event %d\n", event.type);
-		if (event.type == CLIENT_EVENT_HANDSHAKE)
+		result = liaison_pop_client_event(c->liaison, &event);
+
+		if (c->disconnect)
+			break;
+
+		if (result == READ_RESULT_NO_RESULT)
+			continue;
+
+		if (result)
 		{
-			switch (event.handshake.next_state)
-			{
-				case 1:
-					liaison_set_client_state(c->liaison, STATE_STATUS);
-					break;
-				case 2:
-					liaison_set_client_state(c->liaison, STATE_LOGIN);
-					break;
-			}
-			switch (event.handshake.protocol_version)
-			{
-				case 47:
-					liaison_set_version(c->liaison, PROTOCOL_47);
-					break;
-				default:
-					/* unsupported */
-					break;
-			}
+			break;
 		}
 	}
 
 	if (result == READ_RESULT_MALFORMED)
 	{
-		printf("MALFORMED RESULT!\n");
 	}
 }
 
@@ -94,6 +93,8 @@ void client_start(client *c)
 {
 	c->liaison = liaison_create(c);
 	c->tcp_handle.data = c;
+	c->disconnect = false;
+
 	uv_read_start((uv_stream_t *)&c->tcp_handle, alloc_cb, read_cb);
 }
 
@@ -132,4 +133,30 @@ void client_send_raw_bytes(client *c, const uint8_t *bytes, size_t size)
 void client_send_raw_bytearray(client *c, const bytearray *arr)
 {
 	client_send_raw_bytes(c, arr->data, arr->size);
+}
+
+bool client_check_disconnect(client *c)
+{
+	if (c->disconnect)
+	{
+		server_remove_client(c->s, c);
+		client_free(c);
+		return true;
+	}
+	return false;
+}
+
+/* only now can we free the client. */
+void on_client_tcp_handle_close(uv_handle_t *handle)
+{
+	uv_tcp_t *tcp = (uv_tcp_t *)handle;
+	client *c = (client *)(((char *)tcp) - offsetof(client, tcp_handle));
+
+	blue_free(c);
+}
+
+void client_free(client *c)
+{
+	liaison_free(c->liaison);
+	uv_close((uv_handle_t *)&c->tcp_handle, on_client_tcp_handle_close);
 }

@@ -1,6 +1,6 @@
 #pragma once
+
 #include "cJSON.h"
-#include "util/string.h"
 #include <stdint.h>
 
 typedef struct
@@ -17,11 +17,9 @@ typedef struct
 	int32_t z;
 } ipos;
 
-typedef int64_t uuid[2]; /* msb, then lsb. */
-
 typedef struct
 {
-	string raw_json;
+	char *raw_json;
 	cJSON *json;
 } chat_obj;
 

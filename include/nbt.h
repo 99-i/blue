@@ -1,7 +1,6 @@
 #pragma once
 #include "types.h"
 #include "util/bytearray.h"
-#include "util/string.h"
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -26,7 +25,7 @@ const char *tag_type_to_string(nbt_tag_type type);
 typedef struct s_nbt_tag
 {
 	nbt_tag_type type;
-	string name;
+	char *name;
 
 	/* if true, either byte array, list, compound, int array, or long array must be deallocated.
 	 * if list or compound, must free the children as well. */
@@ -40,7 +39,7 @@ typedef struct s_nbt_tag
 		float tag_float;
 		double tag_double;
 		bytearray tag_byte_array;
-		string tag_string;
+		char *tag_string;
 		struct
 		{
 			nbt_tag_type type;

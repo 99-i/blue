@@ -1,6 +1,8 @@
 #include "cJSON.h"
 #include "mem.h"
 #include "net/server.h"
+#include "uv.h"
+#include <bits/getopt_core.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -9,9 +11,11 @@ static void setup_cjson_hooks(void);
 int main(void)
 {
 	setup_cjson_hooks();
-
 	server_settings settings;
-	settings.version = PROTOCOL_47;
+	settings.min_version = PROTOCOL_47;
+	settings.max_version = PROTOCOL_47;
+	settings.online = false;
+
 	server server;
 	server_init(&server, &settings);
 	server_run(&server);

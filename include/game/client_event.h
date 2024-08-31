@@ -1,7 +1,6 @@
 #pragma once
 
 #include "packet/protocol.h"
-#include "util/string.h"
 #include <stdint.h>
 
 typedef enum
@@ -17,11 +16,11 @@ typedef struct
 	client_event_type type;
 	union
 	{
-		string chat_message;
+		char *chat_message;
 		struct
 		{
 			int32_t protocol_version;
-			string server_address;
+			char *server_address;
 			uint16_t server_port;
 			int32_t next_state;
 		} handshake;

@@ -1,6 +1,8 @@
 #include "packet/read_fn.h"
+#include "cJSON.h"
 #include "mem.h"
 #include <string.h>
+#include <uuid/uuid.h>
 #define VARINT_SEGMENT_BITS 0x7F
 #define VARINT_CONTINUE_BIT 0x80
 
@@ -38,7 +40,7 @@ read_result read_varint(bytearray *data, size_t offset, int32_t *varint, uint32_
 	return READ_RESULT_SUCCESS;
 }
 
-read_result read_string(bytearray *data, size_t offset, string *str, uint32_t *bytes_read)
+read_result read_string(bytearray *data, size_t offset, char **str, uint32_t *bytes_read)
 {
 	uint32_t length_size;
 	int32_t length;
@@ -50,13 +52,14 @@ read_result read_string(bytearray *data, size_t offset, string *str, uint32_t *b
 
 	offset += length_size;
 
-	if (offset + length >= data->size)
+	if (offset + length - 1 >= data->size)
 		return READ_RESULT_NOT_ENOUGH_DATA;
 
-	str->data = blue_malloc(length * sizeof(uint8_t));
-	str->size = length;
+	*str = blue_malloc(length * sizeof(uint8_t) + 1);
 
-	memcpy(str->data, &data->data[offset], length);
+	memcpy(*str, &data->data[offset], length);
+
+	(*str)[length] = 0;
 	*bytes_read = length_size + length;
 	return READ_RESULT_SUCCESS;
 }
@@ -197,26 +200,35 @@ read_result read_chat(bytearray *data, size_t offset, chat_obj *chat, uint32_t *
 	if (result)
 		return result;
 
-	chat->json =
-		cJSON_ParseWithLength((char *)chat->raw_json.data, chat->raw_json.size);
+	chat->json = cJSON_Parse(chat->raw_json);
 
 	return READ_RESULT_SUCCESS;
 }
 
-read_result read_uuid(bytearray *data, size_t offset, uuid *uuid, uint32_t *bytes_read)
+read_result read_uuid(bytearray *data, size_t offset, uuid_t *uuid, uint32_t *bytes_read)
 {
 	if (offset + 14 >= data->size)
 		return READ_RESULT_NOT_ENOUGH_DATA;
 
-	*uuid[0] = (data->data[offset + 7] << 24) | (data->data[offset + 6] << 16) |
-			   (data->data[offset + 5] << 24) | (data->data[offset + 4] << 16) |
-			   (data->data[offset + 3] << 24) | (data->data[offset + 2] << 16) |
-			   (data->data[offset + 1] << 8) | data->data[offset];
+	/**i32 = (data->data[offset + 3] << 24) | (data->data[offset + 2] << 16) |
+		   (data->data[offset + 1] << 8) | data->data[offset];*/
 
-	*uuid[1] = (data->data[offset + 15] << 24) | (data->data[offset + 14] << 16) |
-			   (data->data[offset + 13] << 24) | (data->data[offset + 12] << 16) |
-			   (data->data[offset + 11] << 24) | (data->data[offset + 10] << 16) |
-			   (data->data[offset + 9] << 8) | data->data[offset + 8];
+	*uuid[0] = data->data[offset + 15];
+	*uuid[1] = data->data[offset + 14];
+	*uuid[2] = data->data[offset + 13];
+	*uuid[3] = data->data[offset + 12];
+	*uuid[4] = data->data[offset + 11];
+	*uuid[5] = data->data[offset + 10];
+	*uuid[6] = data->data[offset + 9];
+	*uuid[7] = data->data[offset + 8];
+	*uuid[8] = data->data[offset + 7];
+	*uuid[9] = data->data[offset + 6];
+	*uuid[10] = data->data[offset + 5];
+	*uuid[11] = data->data[offset + 4];
+	*uuid[12] = data->data[offset + 3];
+	*uuid[13] = data->data[offset + 2];
+	*uuid[14] = data->data[offset + 1];
+	*uuid[15] = data->data[offset];
 
 	*bytes_read = 16;
 

@@ -21,15 +21,13 @@ typedef struct s_liaison
 } liaison;
 
 /* create an undecided liaison which handles reading the handshake. */
+/* must be freed with liaison_free. */
 liaison *liaison_create(client *c);
 
 void liaison_append_data(liaison *l, const uint8_t *data, size_t size);
 
 read_result liaison_pop_client_event(liaison *l, client_event *event);
 
-void liaison_set_client_state(liaison *l, client_state new_state);
-
-/* update version, liaison_state, and pop_game_event to their new versions. */
-void liaison_set_version(liaison *l, protocol_version version);
-
 void liaison_send_game_event(liaison *l, game_event *event);
+
+void liaison_free(liaison *l);

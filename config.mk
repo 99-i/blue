@@ -1,7 +1,7 @@
-INCS = $(ROOT)/include $(ROOT)/lib/libuv/include
-LIBS = uv
+INCS = $(ROOT)/include $(ROOT)/lib/libuv/include /usr/include
+LIBS = uv ssl uuid
 
-LIBDIRS = lib/libuv/build
+LIBDIRS = lib/libuv/build /usr/lib
 
 CFLAGS = -std=c89 -Wall -Wextra -MMD -MP -g $(addprefix -L, $(LIBDIRS)) $(addprefix -I, $(INCS)) $(addprefix -l, $(LIBS)) -D_GNU_SOURCE
 

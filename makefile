@@ -53,5 +53,8 @@ full_clean:
 gen_cc: clean
 	ts-node util/compile_commands/compile_commands.ts
 
-dbg: bin/$(PROJECT).exe
+gdb: bin/$(PROJECT).exe
 	gdb $<
+
+memcheck: bin/$(PROJECT).exe
+	valgrind --leak-check=full --show-leak-kinds=all $<

@@ -31,7 +31,7 @@ typedef struct
 		{
 			int32_t protocol_version;
 			/* hostname or IP, end.game. localhost or 127.0.0.1 */
-			string server_address;
+			char *server_address;
 			/* default is 25565 */
 			uint16_t server_port;
 			/* 1 for status, 2 for login, (3 for configuration) */

@@ -2,9 +2,10 @@
 #include "types.h"
 #include "util/bytearray.h"
 #include <stdbool.h>
+#include <uuid/uuid.h>
 
 read_result write_varint(bytearray *data, size_t position, int32_t varint, size_t *bytes_written);
-read_result write_string(bytearray *data, size_t position, string *str, size_t *bytes_written);
+read_result write_string(bytearray *data, size_t position, const char *str, size_t *bytes_written);
 read_result write_bool(bytearray *data, size_t position, bool b, size_t *bytes_written);
 read_result write_i8(bytearray *data, size_t position, int8_t i8, size_t *bytes_written);
 read_result write_u8(bytearray *data, size_t position, uint8_t u8, size_t *bytes_written);
@@ -17,4 +18,4 @@ read_result write_float(bytearray *data, size_t position, float f, size_t *bytes
 read_result write_double(bytearray *data, size_t position, double d, size_t *bytes_written);
 read_result write_position(bytearray *data, size_t position, ipos *pos, size_t *bytes_written);
 read_result write_bytearray(bytearray *data, size_t position, bytearray *to_write, size_t *bytes_written);
-read_result write_uuid(bytearray *data, size_t position, uuid id, size_t *bytes_written);
+read_result write_uuid(bytearray *data, size_t position, uuid_t uuid, size_t *bytes_written);

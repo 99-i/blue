@@ -2,15 +2,22 @@
 #include "types.h"
 #include "util/bytearray.h"
 #include <stdbool.h>
+#include <uuid/uuid.h>
+
+#define DO_READ(read_fn, variable_name)                                        \
+	result = read_fn(data, offset + bytes_read_buffer, &variable_name, &size); \
+	if (result)                                                                \
+		return result;                                                         \
+	bytes_read_buffer += size;
 
 /* Read a varint into <varint>.
  * */
 read_result read_varint(bytearray *data, size_t offset, int32_t *varint,
 						uint32_t *bytes_read);
 
-/* Read a string into <string>.
+/* Read a string into <stri>.
  * */
-read_result read_string(bytearray *data, size_t offset, string *str,
+read_result read_string(bytearray *data, size_t offset, char **str,
 						uint32_t *bytes_read);
 
 /* Read a bool into <bool>.
@@ -74,5 +81,5 @@ read_result read_chat(bytearray *data, size_t offset, chat_obj *chat,
 
 /* Read a uuid into <uuid>.
  * */
-read_result read_uuid(bytearray *data, size_t offset, uuid *uuid,
+read_result read_uuid(bytearray *data, size_t offset, uuid_t *uuid,
 					  uint32_t *bytes_read);

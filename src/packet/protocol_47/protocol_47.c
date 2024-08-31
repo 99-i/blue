@@ -1,7 +1,9 @@
+#include "packet/protocol_47.h"
 #include "game/client_event.h"
 #include "mem.h"
 #include "net/client.h"
-#include "packet/protocol_47.h"
+#include "net/login.h"
+#include "net/server.h"
 #include "packet/read_fn.h"
 #include "types.h"
 #include "util/bytearray.h"
@@ -16,6 +18,9 @@ protocol_47_state *protocol_47_create_state(void)
 
 static read_result protocol_47_pop_packet(bytearray *read_buffer, client_state c_state, protocol_47_state *state, protocol_47_serverbound_packet *packet);
 
+/* only free the members, not the packet object itself. */
+static void free_packet(protocol_47_serverbound_packet *packet);
+
 read_result protocol_47_pop_client_event(liaison *l, client_event *event)
 {
 	read_result result;
@@ -29,9 +34,39 @@ read_result protocol_47_pop_client_event(liaison *l, client_event *event)
 
 	/* Convert to client event. TODO */
 
+	printf("Got P47 packet with type %d\n", packet.ptype);
+	switch (packet.ptype)
+	{
+		case PROTOCOL_47_SB_LOGIN_START:
+			printf("Received login start packet with name %s.\n", packet.login_start.name);
+			if (l->c->s->settings.online)
+			{
+				/* TODO: Online mode. */
+			}
+			else
+			{
+				uuid_t uuid = {0};
+
+				send_login_success_5to735(l->c, packet.login_start.name, uuid);
+			}
+			break;
+	}
+
+	free_packet(&packet);
+
 	event->type = CLIENT_EVENT_CHAT_MESSAGE;
 
 	return READ_RESULT_SUCCESS;
+}
+
+static void free_packet(protocol_47_serverbound_packet *packet)
+{
+	switch (packet->ptype)
+	{
+		case PROTOCOL_47_SB_LOGIN_START:
+			blue_free(packet->login_start.name);
+			break;
+	}
 }
 
 static read_result protocol_47_pop_packet(bytearray *read_buffer, client_state c_state, protocol_47_state *state, protocol_47_serverbound_packet *packet)
@@ -43,29 +78,20 @@ static read_result protocol_47_pop_packet(bytearray *read_buffer, client_state c
 	read_result result;
 	bytearray temporary_packet_buffer;
 
-	printf("\nReading bytes (47)start\n");
-	bytearray_print(read_buffer);
-	printf("\nReading bytes (47)end\n");
-
 	result = read_varint(read_buffer, 0, &packet_length, &size);
 	if (result)
 		return result;
-	printf("\nReading length varint %d\n", packet_length);
 
 	if (read_buffer->size - size < (size_t)packet_length)
 	{
 		return READ_RESULT_NOT_ENOUGH_DATA;
 	}
 
-	printf("Construct temporary buffer\n");
 	/* construct temporary buffer with size of packet length. */
 
 	temporary_packet_buffer.capacity = packet_length;
 	temporary_packet_buffer.size = packet_length;
 	temporary_packet_buffer.data = read_buffer->data + size;
-
-	bytearray_print(&temporary_packet_buffer);
-	printf("\n");
 
 	result = protocol_47_read_packet(&temporary_packet_buffer, c_state, 0, packet, &size_buffer);
 	if (result)
@@ -157,25 +183,13 @@ read_result protocol_47_read_packet(bytearray *data, client_state c_state, size_
 	return READ_RESULT_SUCCESS;
 }
 
-#define DO_READ(read_fn, variable_name)                                        \
-	result = read_fn(data, offset + bytes_read_buffer, &variable_name, &size); \
-	if (result)                                                                \
-		return result;                                                         \
-	bytes_read_buffer += size;
-
-#define DO_READ_BUFFER(buffer_size, variable_name)                                                 \
-	result = read_bytearray(data, offset + bytes_read_buffer, &variable_name, buffer_size, &size); \
-	if (result)                                                                                    \
-		return result;                                                                             \
-	bytes_read_buffer += size;
-
 read_result protocol_47_read_login_0(bytearray *data, size_t offset, protocol_47_serverbound_packet *packet, uint32_t *bytes_read)
 {
 	uint32_t bytes_read_buffer = 0;
 	uint32_t size;
 	read_result result;
 
-	string name;
+	char *name;
 
 	DO_READ(read_string, name);
 
@@ -213,7 +227,7 @@ read_result protocol_47_read_play_1(bytearray *data, size_t offset, protocol_47_
 	uint32_t size;
 	read_result result;
 
-	string message;
+	char *message;
 
 	DO_READ(read_string, message);
 
@@ -568,7 +582,7 @@ read_result protocol_47_read_play_21(bytearray *data, size_t offset, protocol_47
 	uint32_t size;
 	read_result result;
 
-	string locale;
+	char *locale;
 	int8_t view_distance;
 	int8_t chat_mode;
 	bool chat_colors;
@@ -618,13 +632,13 @@ read_result protocol_47_read_play_24(bytearray *data, size_t offset, protocol_47
 	uint32_t size;
 	read_result result;
 
-	uuid target_player;
+	uuid_t target_player;
 
 	DO_READ(read_uuid, target_player);
 
 	packet->ptype = PROTOCOL_47_SB_SPECTATE;
 
-	memcpy(&packet->spectate.target_player, &target_player, sizeof(uuid));
+	memcpy(&packet->spectate.target_player, &target_player, sizeof(uuid_t));
 
 	if (bytes_read)
 	{
@@ -638,7 +652,7 @@ read_result protocol_47_read_play_25(bytearray *data, size_t offset, protocol_47
 	uint32_t size;
 	read_result result;
 
-	string hash;
+	char *hash;
 	int32_t rezult;
 
 	DO_READ(read_string, hash);

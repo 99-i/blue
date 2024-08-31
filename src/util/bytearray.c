@@ -1,5 +1,6 @@
 #include "util/bytearray.h"
 #include "mem.h"
+#include "uv.h"
 #include <assert.h>
 #include <stdbool.h>
 #include <string.h>
@@ -72,7 +73,6 @@ void bytearray_insert_byte(bytearray *array, size_t position, uint8_t byte)
 	size_t newsize = array->size + 1;
 	size_t new_capacity;
 
-	assert(position >= 0);
 	if (newsize > array->capacity)
 	{
 		new_capacity = array->capacity == 0 ? 1 : array->capacity;
@@ -104,4 +104,9 @@ void bytearray_print(bytearray *array)
 		printf("%x, ", array->data[i]);
 	}
 	printf("]");
+	/*size_t i;
+	for (i = 0; i < array->size; i++)
+	{
+		printf("%x", array->data[i]);
+	}*/
 }

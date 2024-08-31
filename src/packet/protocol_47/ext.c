@@ -1,5 +1,12 @@
 #include "mem.h"
 #include "packet/protocol_47.h"
+#include "packet/read_fn.h"
+
+#define DO_READ_BUFFER(buffer_size, variable_name)                                                 \
+	result = read_bytearray(data, offset + bytes_read_buffer, &variable_name, buffer_size, &size); \
+	if (result)                                                                                    \
+		return result;                                                                             \
+	bytes_read_buffer += size;
 
 /* encryption_response */
 read_result protocol_47_read_login_1(bytearray *data, size_t offset, protocol_47_serverbound_packet *packet, uint32_t *bytes_read)
@@ -7,14 +14,21 @@ read_result protocol_47_read_login_1(bytearray *data, size_t offset, protocol_47
 	uint32_t bytes_read_buffer = 0;
 	uint32_t size;
 	read_result result;
-	(void)result;
-	(void)size;
-	(void)data;
-	(void)offset;
 
 	/* Declare data types and read them. */
+	int32_t shared_secret_length;
+	bytearray shared_secret;
+	int32_t verify_token_length;
+	bytearray verify_token;
+
+	DO_READ(read_varint, shared_secret_length);
+	DO_READ_BUFFER(shared_secret_length, shared_secret);
+	DO_READ(read_varint, verify_token_length);
+	DO_READ_BUFFER(verify_token_length, verify_token);
 
 	packet->ptype = PROTOCOL_47_SB_ENCRYPTION_RESPONSE;
+	packet->encryption_response.shared_secret = shared_secret;
+	packet->encryption_response.verify_token = verify_token;
 
 	if (bytes_read)
 	{
