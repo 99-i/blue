@@ -152,6 +152,7 @@ read_result protocol_47_read_play_23(bytearray *data, size_t offset, protocol_47
 	uint32_t bytes_read_buffer = 0;
 	uint32_t size;
 	read_result result;
+
 	(void)result;
 	(void)size;
 	(void)data;
