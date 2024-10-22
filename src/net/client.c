@@ -24,19 +24,20 @@ static void alloc_cb(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf)
 static void read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf)
 {
 	client *c = stream->data;
-	if (c->disconnect)
+
+	if (client_check_disconnect(c))
 	{
-		server_remove_client(c->s, c);
-		client_free(c);
+		goto end;
 	}
 	else if (nread == UV_EOF)
 	{
-		server_remove_client(c->s, c);
-		client_free(c);
+		/* client sent eof */
+		c->disconnect = true;
 	}
 	else if (nread < 0)
 	{
-		/* error */
+		/* read error */
+		c->disconnect = true;
 		server_remove_client(c->s, c);
 		client_free(c);
 	}
@@ -44,6 +45,8 @@ static void read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf)
 	{
 		client_handle_read(c, (const uint8_t *)buf->base, nread);
 	}
+
+end:
 
 	if (buf->base != NULL && buf->len != 0)
 	{

@@ -51,7 +51,7 @@ full_clean:
 	rm -rf testbin
 
 gen_cc: clean
-	ts-node util/compile_commands/compile_commands.ts
+	tsx util/compile_commands/compile_commands.ts
 
 gdb: bin/$(PROJECT).exe
 	gdb $<
