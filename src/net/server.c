@@ -1,4 +1,5 @@
 #include "net/server.h"
+#include "game/game.h"
 #include "mem.h"
 #include "net/client.h"
 #include "packet/protocol.h"
@@ -23,6 +24,19 @@ static void connection_cb(uv_stream_t *stream, int status)
 static void client_stream_close_cb(uv_handle_t *handle)
 {
 	blue_free(handle->data);
+}
+
+static void timer_cb(uv_timer_t *timer)
+{
+	server *s = timer->data;
+	size_t i;
+
+	for (i = 0; i < s->clients.size; i++)
+	{
+		client_check_disconnect(s->clients.clients[i]);
+	}
+
+	game_check(&s->g);
 }
 
 void server_accept_client(server *s)
@@ -54,7 +68,6 @@ void server_accept_client(server *s)
 	}
 	s->clients.clients[s->clients.size] = c;
 	s->clients.size++;
-	printf("ADD CLIENT\n");
 
 	uv_mutex_unlock(&s->clients_mutex);
 }
@@ -72,6 +85,8 @@ bool server_init(server *s, server_settings *settings)
 
 	uv_tcp_nodelay(&s->listen_handle, 1);
 
+	s->listen_handle.data = s;
+
 	result = uv_listen((uv_stream_t *)&s->listen_handle, 512, connection_cb);
 
 	if (result)
@@ -81,11 +96,17 @@ bool server_init(server *s, server_settings *settings)
 	s->clients.clients = blue_malloc(s->clients.capacity * sizeof(client *));
 	s->clients.size = 0;
 
-	s->listen_handle.data = s;
-
 	memcpy(&s->settings, settings, sizeof(server_settings));
 
 	uv_mutex_init(&s->clients_mutex);
+
+	uv_timer_init(&s->server_loop, &s->subtick_timer);
+	s->subtick_timer.data = s;
+	uv_timer_start(&s->subtick_timer, timer_cb, 0, 10);
+
+	printf("test2\n");
+
+	game_init(&s->g);
 
 	return true;
 }
@@ -93,7 +114,6 @@ bool server_init(server *s, server_settings *settings)
 void server_remove_client(server *s, client *c)
 {
 	size_t i;
-	printf("REMOVE PLAYER.\n");
 	uv_mutex_lock(&s->clients_mutex);
 	for (i = 0; i < s->clients.size; i++)
 	{

@@ -1,4 +1,5 @@
 #pragma once
+#include "game/game.h"
 #include "net/client.h"
 #include "packet/protocol.h"
 #include "packet/protocol_undecided.h"
@@ -9,6 +10,7 @@
 
 typedef struct
 {
+	/* TODO: excluding versions in between this. */
 	protocol_version min_version;
 	protocol_version max_version;
 	bool online;
@@ -19,6 +21,7 @@ typedef struct s_server
 	uv_tcp_t listen_handle;
 	uv_thread_t run_thread;
 	uv_loop_t server_loop;
+	uv_timer_t subtick_timer;
 
 	uv_mutex_t clients_mutex;
 	struct
@@ -29,6 +32,8 @@ typedef struct s_server
 	} clients;
 
 	server_settings settings;
+
+	game g;
 } server;
 
 bool server_init(server *s, server_settings *settings);

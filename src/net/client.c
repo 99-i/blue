@@ -38,8 +38,6 @@ static void read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf)
 	{
 		/* read error */
 		c->disconnect = true;
-		server_remove_client(c->s, c);
-		client_free(c);
 	}
 	else
 	{
