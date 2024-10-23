@@ -26,19 +26,6 @@ static void client_stream_close_cb(uv_handle_t *handle)
 	blue_free(handle->data);
 }
 
-static void timer_cb(uv_timer_t *timer)
-{
-	server *s = timer->data;
-	size_t i;
-
-	for (i = 0; i < s->clients.size; i++)
-	{
-		client_check_disconnect(s->clients.clients[i]);
-	}
-
-	game_check(&s->g);
-}
-
 void server_accept_client(server *s)
 {
 	client *c = blue_malloc(sizeof(client));
@@ -99,12 +86,6 @@ bool server_init(server *s, server_settings *settings)
 	memcpy(&s->settings, settings, sizeof(server_settings));
 
 	uv_mutex_init(&s->clients_mutex);
-
-	uv_timer_init(&s->server_loop, &s->subtick_timer);
-	s->subtick_timer.data = s;
-	uv_timer_start(&s->subtick_timer, timer_cb, 0, 10);
-
-	printf("test2\n");
 
 	game_init(&s->g);
 
@@ -184,6 +165,7 @@ void server_run_thread(void *data)
 void server_run(server *s)
 {
 	uv_thread_create(&s->run_thread, server_run_thread, s);
+	game_run(&s->g);
 }
 
 void server_join(server *s)

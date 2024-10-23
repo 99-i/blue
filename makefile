@@ -25,10 +25,10 @@ OBJS = $(filter-out bin/main.o, $(wildcard bin/*.o))
 MAIN_OBJ = bin/main.o
 
 bin/$(PROJECT).exe: $(MAIN_OBJ) bin/lib$(PROJECT).a bin/recompile
-	gcc $(LINKFLAGS) -o $@ $(MAIN_OBJ) -Lbin $(addprefix -L, $(LIBDIRS)) $(addprefix -l, $(LIBS)) -l$(PROJECT) -pthread
+	@gcc $(LINKFLAGS) -o $@ $(MAIN_OBJ) -Lbin $(addprefix -L, $(LIBDIRS)) $(addprefix -l, $(LIBS)) -l$(PROJECT) -pthread
 
 bin/lib$(PROJECT).a: $(OBJS)
-	ar rcs $@ $(OBJS)
+	@ar rcs $@ $(OBJS)
 
 run: bin/$(PROJECT).exe
 	@echo

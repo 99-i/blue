@@ -21,7 +21,6 @@ typedef struct s_server
 	uv_tcp_t listen_handle;
 	uv_thread_t run_thread;
 	uv_loop_t server_loop;
-	uv_timer_t subtick_timer;
 
 	uv_mutex_t clients_mutex;
 	struct

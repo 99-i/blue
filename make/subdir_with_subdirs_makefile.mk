@@ -8,6 +8,7 @@ DEPS = $(addprefix $(ROOT)/bin/$(OBJ_PREFIX)_,$(patsubst %.c, %.d, $(SRCS)))
 .PHONY: all subdirs $(SUBDIRS)
 
 all: subdirs $(OBJS)
+	@:
 
 subdirs: $(SUBDIRS)
 
