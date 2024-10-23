@@ -16,4 +16,4 @@ $(SUBDIRS):
 
 -include $(DEPS)
 
-include $(ROOT)/compile_command.mk
+include $(ROOT)/make/compile_command.mk

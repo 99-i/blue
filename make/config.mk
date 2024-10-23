@@ -9,5 +9,5 @@ LINKFLAGS = -MMD -MP -g
 
 PROJECT := blue
 
-SUBDIR_MAKEFILE = $(ROOT)/subdir_makefile.mk
-SUBDIR_WITH_SUBDIRS_MAKEFILE = $(ROOT)/subdir_with_subdirs_makefile.mk
+SUBDIR_MAKEFILE = $(ROOT)/make/subdir_makefile.mk
+SUBDIR_WITH_SUBDIRS_MAKEFILE = $(ROOT)/make/subdir_with_subdirs_makefile.mk

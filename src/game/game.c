@@ -1,5 +1,6 @@
 #include "game/game.h"
 #include "uv.h"
+#include <stdio.h>
 
 void game_init(game *g)
 {
@@ -14,6 +15,7 @@ void game_check(game *g)
 
 	if (ms_since_last_tick > 20)
 	{
+		printf("hi\n");
 	}
 }
 

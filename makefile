@@ -1,4 +1,4 @@
-include config.mk
+include make/config.mk
 .PHONY: all
 .PHONY: clean
 .PHONY: gen_cc
@@ -15,10 +15,10 @@ tests: compile bin/lib$(PROJECT).a
 bin:
 	@mkdir bin
 
-include libs.mk
+include make/libs.mk
 
 compile:
-	@$(MAKE) -C src CONFIG_MK="`pwd`/config.mk" ROOT="`pwd`"
+	@$(MAKE) -C src CONFIG_MK="`pwd`/make/config.mk" ROOT="`pwd`"
 
 OBJS = $(filter-out bin/main.o, $(wildcard bin/*.o))
 
