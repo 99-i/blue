@@ -5,9 +5,8 @@
 
 typedef enum
 {
-	CLIENT_EVENT_HANDSHAKE,
-	CLIENT_EVENT_SLP_REQUEST,
-	CLIENT_EVENT_CHAT_MESSAGE
+	CLIENT_EVENT_JOIN,
+	CLIENT_EVENT_CHAT_MESSAGE,
 } client_event_type;
 
 /* An event that the client sends. */
@@ -24,5 +23,8 @@ typedef struct
 			uint16_t server_port;
 			int32_t next_state;
 		} handshake;
+		struct
+		{
+		} join;
 	};
 } client_event;

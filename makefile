@@ -6,11 +6,11 @@ include make/config.mk
 
 all: bin all_libraries compile bin/$(PROJECT).exe
 
-tests: compile bin/lib$(PROJECT).a
+test: compile bin/lib$(PROJECT).a
 	@tput setaf 2
 	@echo Running tests
 	@tput sgr0
-	@$(MAKE) --no-print-directory -C test CONFIG_MK="`pwd`/config.mk" ROOT="`pwd`"
+	@$(MAKE) --no-print-directory -C tests CONFIG_MK="`pwd`/make/config.mk" ROOT="`pwd`"
 
 bin:
 	@mkdir bin

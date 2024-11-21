@@ -1,5 +1,6 @@
 #include "net/client.h"
 #include "game/client_event.h"
+#include "game/entity.h"
 #include "mem.h"
 #include "net/server.h"
 #include "packet/liaison.h"
@@ -71,10 +72,9 @@ static void client_check_events(client *c)
 
 	while (true)
 	{
-		result = liaison_pop_client_event(c->liaison, &event);
-
 		if (c->disconnect)
 			break;
+		result = liaison_pop_client_event(c->liaison, &event);
 
 		if (result == READ_RESULT_NO_RESULT)
 			continue;
@@ -82,6 +82,18 @@ static void client_check_events(client *c)
 		if (result)
 		{
 			break;
+		}
+
+		switch (event.type)
+		{
+			case CLIENT_EVENT_JOIN:
+				{
+				}
+				break;
+			case CLIENT_EVENT_CHAT_MESSAGE:
+				{
+				}
+				break;
 		}
 	}
 
@@ -95,6 +107,9 @@ void client_start(client *c)
 	c->liaison = liaison_create(c);
 	c->tcp_handle.data = c;
 	c->disconnect = false;
+
+	c->ingame = false;
+	c->id = ENTITY_NULL;
 
 	uv_read_start((uv_stream_t *)&c->tcp_handle, alloc_cb, read_cb);
 }
@@ -131,6 +146,7 @@ void client_send_raw_bytes(client *c, const uint8_t *bytes, size_t size)
 	uv_write(&request->req, (uv_stream_t *)&c->tcp_handle, &request->buf, 1, on_client_write);
 }
 
+/* TODO: turn this into a macro */
 void client_send_raw_bytearray(client *c, const bytearray *arr)
 {
 	client_send_raw_bytes(c, arr->data, arr->size);

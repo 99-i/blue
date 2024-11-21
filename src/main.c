@@ -16,10 +16,10 @@ int main(void)
 	settings.max_version = PROTOCOL_47;
 	settings.online = false;
 
-	server server;
-	server_init(&server, &settings);
-	server_run(&server);
-	server_join(&server);
+	server s;
+	server_init(&s, &settings);
+	server_run(&s);
+	server_join(&s);
 
 	return 0;
 }

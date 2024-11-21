@@ -8,6 +8,7 @@ void *blue_malloc(size_t size)
 	if (ptr == NULL)
 	{
 		printf("FATAL ERROR: Could not allocate memory. Shutting down.\n");
+		/* TODO: exit behaviors. */
 		exit(1);
 	}
 	return ptr;
@@ -19,6 +20,7 @@ void *blue_realloc(void *ptr, size_t new_size)
 	if (new_ptr == NULL)
 	{
 		printf("FATAL ERROR: Could not allocate memory. Shutting down.\n");
+		/* TODO: exit behaviors. */
 		exit(1);
 	}
 	return new_ptr;

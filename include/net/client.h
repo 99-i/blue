@@ -1,4 +1,5 @@
 #pragma once
+#include "game/entity.h"
 #include "packet/liaison.h"
 #include "packet/protocol.h"
 #include "util/bytearray.h"
@@ -13,6 +14,10 @@ typedef struct client_s
 	liaison *liaison;
 
 	bool disconnect;
+
+	bool ingame;  /* if the client is in-game and has a player. */
+	entity_id id; /* NULL if not connected. */
+
 } client;
 
 void client_start(client *c);

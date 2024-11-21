@@ -20,3 +20,5 @@ void game_run(game *g);
 void game_tick(game *g);
 
 void game_schedule_quit(game *g);
+
+void game_join(game *g);

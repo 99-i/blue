@@ -47,6 +47,7 @@ read_result protocol_47_read_play_2(bytearray *data, size_t offset, protocol_47_
 	(void)size;
 	(void)data;
 	(void)offset;
+
 	/* Declare data types and read them. */
 
 	packet->ptype = PROTOCOL_47_SB_USE_ENTITY;

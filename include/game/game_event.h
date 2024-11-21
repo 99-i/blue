@@ -4,10 +4,10 @@
 /* track these for replay technology. */
 typedef enum
 {
+	PLAYER_JOIN,
 	ENTITY_MOVE
 } game_event_type;
 
 typedef struct
 {
-
 } game_event;
