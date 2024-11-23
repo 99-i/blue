@@ -10,4 +10,16 @@ typedef enum
 
 typedef struct
 {
+	game_event_type type;
+
+	union
+	{
+		struct
+		{
+		} player_join;
+		struct
+		{
+		} entity_move;
+	};
+
 } game_event;

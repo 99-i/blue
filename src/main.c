@@ -2,7 +2,6 @@
 #include "mem.h"
 #include "net/server.h"
 #include "uv.h"
-#include <bits/getopt_core.h>
 #include <stdio.h>
 #include <stdlib.h>
 

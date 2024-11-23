@@ -22,4 +22,4 @@ typedef struct
 void slp_free(slp_object *obj);
 
 /* return value must be freed with blue_free. */
-char *slp_to_json(slp_object *slp);
+char *slp_to_json(const slp_object *slp);

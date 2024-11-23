@@ -19,7 +19,6 @@ typedef enum : int
 
 /* return true if version is one that is in the protocol_version enum, e.g.
  * blue can handle it. */
-
 bool is_protocol_version_supported(int32_t version);
 
 const char *protocol_version_to_cstr(protocol_version version);

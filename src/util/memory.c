@@ -1,3 +1,4 @@
+#include "log.h"
 #include "mem.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -7,7 +8,7 @@ void *blue_malloc(size_t size)
 	void *ptr = malloc(size);
 	if (ptr == NULL)
 	{
-		printf("FATAL ERROR: Could not allocate memory. Shutting down.\n");
+		log_fatal("Could not allocate memory. Shutting down.");
 		/* TODO: exit behaviors. */
 		exit(1);
 	}
@@ -19,7 +20,7 @@ void *blue_realloc(void *ptr, size_t new_size)
 	void *new_ptr = realloc(ptr, new_size);
 	if (new_ptr == NULL)
 	{
-		printf("FATAL ERROR: Could not allocate memory. Shutting down.\n");
+		log_fatal("Could not allocate memory. Shutting down.");
 		/* TODO: exit behaviors. */
 		exit(1);
 	}

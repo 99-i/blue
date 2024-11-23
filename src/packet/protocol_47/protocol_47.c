@@ -1,5 +1,6 @@
 #include "packet/protocol_47.h"
 #include "game/client_event.h"
+#include "log.h"
 #include "mem.h"
 #include "net/client.h"
 #include "net/login.h"
@@ -34,11 +35,11 @@ read_result protocol_47_pop_client_event(liaison *l, client_event *event)
 
 	/* Convert to client event. TODO */
 
-	printf("Got P47 packet with type %d\n", packet.ptype);
+	log_trace("Got P47 packet with type %d", packet.ptype);
 	switch (packet.ptype)
 	{
 		case PROTOCOL_47_SB_LOGIN_START:
-			printf("Received login start packet with name %s.\n", packet.login_start.name);
+			log_trace("Received login start packet with name %s.", packet.login_start.name);
 			if (l->c->s->settings.online)
 			{
 				/* TODO: Online mode. */

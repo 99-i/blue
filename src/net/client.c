@@ -1,6 +1,7 @@
 #include "net/client.h"
 #include "game/client_event.h"
 #include "game/entity.h"
+#include "log.h"
 #include "mem.h"
 #include "net/server.h"
 #include "packet/liaison.h"
@@ -127,7 +128,7 @@ static void on_client_write(uv_write_t *req, int status)
 
 	if (status < 0)
 	{
-		printf("ERROR: WRITE FAILED. %s", uv_strerror(status));
+		log_error("Write failed. %s", uv_strerror(status));
 	}
 
 	blue_free(request->buf.base);

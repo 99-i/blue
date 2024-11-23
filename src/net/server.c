@@ -1,5 +1,6 @@
 #include "net/server.h"
 #include "game/game.h"
+#include "log.h"
 #include "mem.h"
 #include "net/client.h"
 #include "packet/protocol.h"
@@ -14,7 +15,7 @@ static void connection_cb(uv_stream_t *stream, int status)
 
 	if (status < 0)
 	{
-		fprintf(stderr, "New connection error %s\n", uv_strerror(status));
+		log_error("New connection error. %s", uv_strerror(status));
 		return;
 	}
 
@@ -55,7 +56,6 @@ void server_accept_client(server *s)
 	}
 	s->clients.clients[s->clients.size] = c;
 	s->clients.size++;
-
 	uv_mutex_unlock(&s->clients_mutex);
 }
 
@@ -145,9 +145,13 @@ slp_object *server_get_slp(server *s, protocol_version version)
 	memset(slp->version_name, 0, 50);
 
 	if (s->settings.min_version == s->settings.max_version)
+	{
 		snprintf(slp->version_name, 50, "blue %s", protocol_version_to_cstr(s->settings.min_version));
+	}
 	else
+	{
 		snprintf(slp->version_name, 50, "blue %s - %s", protocol_version_to_cstr(s->settings.min_version), protocol_version_to_cstr(s->settings.max_version));
+	}
 
 	/* blue does not support a max number of players. */
 	slp->players.max = 5000;
@@ -159,6 +163,7 @@ slp_object *server_get_slp(server *s, protocol_version version)
 
 void server_run_thread(void *data)
 {
+	log_info("Blue starting up.");
 	uv_run(&((server *)data)->server_loop, UV_RUN_DEFAULT);
 }
 

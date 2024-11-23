@@ -26,7 +26,7 @@ const char *protocol_version_to_cstr(protocol_version version)
 		case PROTOCOL_UNDECIDED:
 			return "UNDECIDED";
 		case PROTOCOL_5:
-			return "1.7.10"; /* looks cool */
+			return "1.7.10";
 		case PROTOCOL_47:
 			return "1.8.9";
 	}
@@ -38,7 +38,7 @@ void slp_free(slp_object *obj)
 	blue_free(obj);
 }
 
-char *slp_to_json(slp_object *slp)
+char *slp_to_json(const slp_object *slp)
 {
 	char *s;
 	cJSON *total = cJSON_CreateObject();

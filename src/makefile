@@ -4,7 +4,7 @@ SRCS = $(wildcard *.c)
 OBJS = $(addprefix $(ROOT)/bin/,$(patsubst %.c, %.o, $(SRCS)))
 DEPS = $(addprefix $(ROOT)/bin/,$(patsubst %.c, %.d, $(SRCS)))
 
-SUBDIRS = packet net util nbt game
+SUBDIRS = packet net util nbt game log
 
 .PHONY: all subdirs $(SUBDIRS)
 
